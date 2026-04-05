@@ -924,7 +924,7 @@ export default function Home() {
                   目前支持 macOS，Windows 版即将推出。
                 </p>
                 <div className="mt-8 flex flex-wrap gap-3">
-                  <a href="/SuperIME.pkg" className="mono-button mono-button-primary">
+                  <a href="https://pub-9e452a8e2f4e4b94ab74b337d3c7cb84.r2.dev/WuIME-1.0.6.pkg" className="mono-button mono-button-primary">
                     DOWNLOAD FOR MACOS
                   </a>
                   <span className="mono-button mono-button-ghost" style={{ opacity: 0.5, cursor: "not-allowed" }}>
