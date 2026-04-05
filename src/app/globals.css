@@ -1,8 +1,16 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #1f2228;
+  --foreground: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --text-muted: rgba(255, 255, 255, 0.5);
+  --text-disabled: rgba(255, 255, 255, 0.3);
+  --border-default: rgba(255, 255, 255, 0.1);
+  --border-strong: rgba(255, 255, 255, 0.2);
+  --surface-subtle: rgba(255, 255, 255, 0.03);
+  --surface-hover: rgba(255, 255, 255, 0.08);
+  --focus-ring: rgba(59, 130, 246, 0.5);
 }
 
 @theme inline {
@@ -12,15 +20,151 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), "PingFang SC", "Hiragino Sans GB",
+    "Microsoft YaHei", sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+  transition: color 180ms ease;
+}
+
+a:hover {
+  color: var(--text-muted);
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+}
+
+.surface {
+  border: 1px solid var(--border-default);
+  background: var(--surface-subtle);
+  transition: border-color 180ms ease, background-color 180ms ease;
+}
+
+.surface:hover {
+  border-color: var(--border-strong);
+  background: var(--surface-hover);
+}
+
+.mono-button {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0;
+  font-family: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo,
+    Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  transition: color 180ms ease, background-color 180ms ease,
+    border-color 180ms ease, opacity 180ms ease;
+}
+
+.mono-button-primary {
+  border: 1px solid #ffffff;
+  background: #ffffff;
+  color: #1f2228;
+  padding: 12px 24px;
+}
+
+.mono-button-primary:hover {
+  opacity: 0.9;
+  color: #1f2228;
+}
+
+.mono-button-ghost {
+  border: 1px solid var(--border-strong);
+  background: transparent;
+  color: #ffffff;
+  padding: 12px 24px;
+}
+
+.mono-button-ghost:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.mono-tag {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--border-strong);
+  border-radius: 0;
+  padding: 4px 8px;
+  font-family: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo,
+    Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.nav-desktop {
+  display: none;
+  align-items: center;
+  gap: 2rem;
+}
+.nav-desktop-btn {
+  display: none;
+}
+.nav-mobile-only {
+  display: flex;
+}
+@media (min-width: 640px) {
+  .nav-desktop {
+    display: flex;
+  }
+  .nav-desktop-btn {
+    display: block;
+  }
+  .nav-mobile-only {
+    display: none !important;
+  }
+}
+
+.section-enter {
+  animation: section-enter 680ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  animation-delay: calc(var(--enter-index, 0) * 80ms);
+}
+
+@keyframes section-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

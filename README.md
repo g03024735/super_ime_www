@@ -1,36 +1,38 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Super IME 官网原型
 
-## Getting Started
+基于 Next.js 的单页官网，包含：
+- 左右对比输入动画（macOS 系统输入法 vs 你的输入法）
+- 每个动画下方虚拟键盘按键高亮
+- 候选词列表动态变化回放
+- “立即体验”接口调用区（连接你的模型后端）
 
-First, run the development server:
+## 本地启动
 
 ```bash
+npm install
+cp .env.example .env.local
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+打开 `http://localhost:3000`。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 环境变量
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+`.env.local`:
 
-## Learn More
+```bash
+IME_PREVIEW_API_URL=http://127.0.0.1:8000/predict
+```
 
-To learn more about Next.js, take a look at the following resources:
+说明：
+- 前端调用 `/api/preview`
+- 服务端路由会把请求透传到 `IME_PREVIEW_API_URL`
+- 默认请求体：`{ "input": "..." }`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 生产构建
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run lint
+npm run build
+npm start
+```
