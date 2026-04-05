@@ -934,6 +934,15 @@ export default function Home() {
                 <p className="mt-4 text-[13px] text-white/40">
                   macOS 13+ (Apple Silicon &amp; Intel) &middot; 安装包约 604MB（模型文件占99%）
                 </p>
+                <details className="mt-4 text-[13px] text-white/40">
+                  <summary className="cursor-pointer hover:text-white/60">安装提示：首次打开提示"身份不明的开发者"？</summary>
+                  <div className="mt-2 space-y-1 pl-4 border-l border-white/10">
+                    <p>1. 双击安装包，如果弹出安全提示，点"好"关闭</p>
+                    <p>2. 打开 系统设置 → 隐私与安全性</p>
+                    <p>3. 下方会显示"WuIME-1.0.6.pkg 已被阻止"，点"仍要打开"</p>
+                    <p>4. 输入密码确认，正常安装即可</p>
+                  </div>
+                </details>
               </div>
             </div>
           </div>
