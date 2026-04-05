@@ -27,6 +27,7 @@ const NAV_LINKS = [
   { href: "#compare", label: "对比" },
   { href: "#engine", label: "机制" },
   { href: "#download", label: "下载" },
+  { href: "#contact", label: "联系" },
 ];
 
 const SYSTEM_FRAMES: ReplayFrame[] = [
@@ -290,7 +291,7 @@ const FEATURE_CARDS = [
   },
   {
     title: "模糊容错",
-    description: "\"zhomu\" → \"周末\"，\"nv\" → \"女\"，\"lnag\" → \"狼\"。自动识别缩写、模糊音与拼写偏差。",
+    description: "\"zhomu\" → \"周末\"，\"nv\" → \"女\"，\"lnag\" → \"狼\"。能够处理缩写、模糊音与拼写偏差。",
   },
   {
     title: "上下文纠正",
@@ -298,7 +299,7 @@ const FEATURE_CARDS = [
   },
   {
     title: "自定义词库",
-    description: "支持添加专有名词与行业术语，输入时自动识别并优先匹配，覆盖个性化场景。",
+    description: "支持添加专有名词与行业术语，输入时自动处理并优先匹配，覆盖个性化场景。",
   },
   {
     title: "完全离线",
@@ -706,8 +707,8 @@ export default function Home() {
             href="#top"
             className="flex items-center gap-2 font-mono text-[14px] uppercase tracking-[1.4px] text-white"
           >
-            <img src="/icon.svg" alt="SUPER IME" className="h-6 w-6" />
-            SUPER IME
+            <img src="/icon.svg" alt="超级输入法" className="h-6 w-6" />
+            超级输入法
           </a>
 
           <nav className="nav-desktop">
