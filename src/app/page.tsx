@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
+import TypeIt from "typeit-react";
 
 type ReplayFrame = {
   id: string;
@@ -280,46 +281,46 @@ const SUPER_FRAMES: ReplayFrame[] = buildSuperFrames();
 
 const FEATURE_CARDS = [
   {
-    title: "整句推理",
-    description: "240M Transformer 端到端解码，输入越长上下文越丰富，结果越准确。不是查词典，是理解你在说什么。",
+    title: "整句输入",
+    description: "输入完整拼音序列，一次性输出整句中文。减少逐字选词的中断，保持输入连续性。",
   },
   {
-    title: "中英数混打",
-    description: "一口气打完 \"jintian3dianmeeting\" 直接出 \"今天3点meeting\"。不用切换输入法，不打断思路。",
+    title: "中英混输",
+    description: "\"jintian3dianmeeting\" → \"今天3点meeting\"。中文、英文、数字无需切换，一次输入完成。",
   },
   {
-    title: "打错也对",
-    description: "\"zhomu\" 出 \"周末\"，\"nv\" 出 \"女\"，\"lnag\" 出 \"狼\"。模糊音、缩写、手滑全兜底。",
+    title: "模糊容错",
+    description: "\"zhomu\" → \"周末\"，\"nv\" → \"女\"，\"lnag\" → \"狼\"。自动识别缩写、模糊音与拼写偏差。",
   },
   {
-    title: "越打越准",
-    description: "打 \"genshui\" 先出 \"跟谁\"，继续打 \"genshuizheta\" 自动修正为 \"跟随着他\"。模型实时根据后文纠正前文。",
+    title: "上下文纠正",
+    description: "\"genshui\" 先输出 \"跟谁\"，继续输入 \"genshuizheta\" 自动修正为 \"跟随着他\"。后文驱动前文优化。",
   },
   {
     title: "自定义词库",
-    description: "添加专有名词后，模型推理时自动注入上下文。不是简单匹配，是让模型理解你的词汇。",
+    description: "支持添加专有名词与行业术语，输入时自动识别并优先匹配，覆盖个性化场景。",
   },
   {
     title: "完全离线",
-    description: "模型运行在本地，不联网、不上传、不追踪。你的每一次输入都只属于你自己。",
+    description: "全部运算在本地完成。不联网、不上传数据、不追踪行为、无广告。",
   },
 ];
 
 const ENGINE_LINES = [
   {
-    label: "Model",
-    value: "Seq2Seq Transformer 240M",
-    detail: "6层 Encoder + 6层 Decoder，d=1024，16头注意力。拼音字符序列直接映射到中文字符序列。",
+    label: "推理引擎",
+    value: "神经网络整句理解",
+    detail: "基于深度学习模型对完整拼音序列进行语义分析，替代传统的词频匹配方案。",
   },
   {
-    label: "Decoding",
-    value: "Beam Search + KV Cache",
-    detail: "beam=2 实时预览，展开时 beam=7~20 搜索更多候选。KV Cache 避免重复计算，每步只需一次 decoder 调用。",
+    label: "解码策略",
+    value: "多路径搜索",
+    detail: "同时评估多种候选组合，选出全局最优结果，避免逐字贪心导致的上下文偏差。",
   },
   {
-    label: "Runtime",
-    value: "CoreML Float16 on Device",
-    detail: "模型运行在 Apple Neural Engine / GPU 上，Float16 推理，无需网络连接。",
+    label: "运行环境",
+    value: "端侧离线推理",
+    detail: "模型部署在本地设备，利用硬件加速完成推理，无需网络连接。",
   },
 ];
 
@@ -510,26 +511,87 @@ function ReplayPanel({
   );
 }
 
-function TryPanel() {
-  const [input, setInput] = useState("");
-  const [result, setResult] = useState("");
+// 演示案例
+const DEMO_CASES = [
+  { input: "zhege bug fixle,code reviewyixiaba", output: "这个 bug fix了，code review一下吧" },
+  { input: "npm run dev", output: "npm run dev" },
+  { input: "git merge develop", output: "git merge develop" },
+  { input: "jintianxiawu3diankaimeeting,qingdaiLaptop", output: "今天下午3点开meeting，请带Laptop" },
+  { input: "gungungun,dashab,zaiyebuxiangkanjiannile", output: "滚滚滚，大傻逼，再也不想看见你了" },
+  { input: "xianzhixing git log --oneline -10 kankancommitjilu", output: "先执行 git log --oneline -10 看看commit记录" },
+  { input: "wangzhangfagedocgeiSarah,tade email shisarah@test.com", output: "王章发个doc给Sarah，他的 email 是sarah@test.com" },
+  { input: "mingtianzaochen9:30yougeshipinghuiyi", output: "明天早晨9:30有个视频会议" },
+  { input: "zhegexiangmu deadline shixiazhouyi,haisheng3tianlezanmenjiajinba", output: "这个项目 deadline 是下周一，还剩3天了咱们加紧吧" },
+  { input: "bangwomaidian A4zhi,2bao,zaijia1heSHARPbixindui", output: "帮我买点 A4纸，2包，再加1盒SHARP笔芯对" },
+  { input: "wanshangdianying7:45kaishi,women7:00zaimendengba", output: "晚上电影7:45开始，我们7:00在门口等吧" },
+  { input: "qingquerenServer3deIP,duankoushi8080haishi443", output: "请确认Server3的IP，端口是8080还是443" },
+  { input: "genjuhetongdi12tiaoyueding,yifangxuzai30tianneifukuan", output: "根据合同第12条约定，乙方须在30天内付款" },
+  { input: "bencianjianshuzhengju3fen,qizhong DNA jiandingbaogao1fen", output: "本次案件书证据3份，其中 DNA 鉴定报告1份" },
+  { input: "docker buildchenggongle,danshikubernetes podqidongbaoOOMKilled", output: "docker build成功了，但是kubernetes pod启动报OOMKilled" },
+  { input: "nishibushiyoubing,shuohuadoubudongnaozima", output: "你是不是有病，说话都不动脑子吗" },
+  { input: "laozizaojiushuoguole,nibuting,xianzaizhidaocuoleba", output: "老子早就说过了，你不听，现在知道错了吧" },
+];
+
+function LiveDemo() {
+  // 模式: "auto" 自动演示 | "user" 用户输入
+  const [mode, setMode] = useState<"auto" | "user">("auto");
+
+  // 自动演示状态
+  const [caseIndex, setCaseIndex] = useState(0);
+  const [demoOutput, setDemoOutput] = useState("");
+  const [showDemoOutput, setShowDemoOutput] = useState(false);
+  const typeItKey = useRef(0);
+  const nextTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // 用户输入状态
+  const [userInput, setUserInput] = useState("");
+  const [userResult, setUserResult] = useState("");
   const [loading, setLoading] = useState(false);
   const [durationMs, setDurationMs] = useState<number | null>(null);
   const [error, setError] = useState("");
-  const debounceRef = useState<ReturnType<typeof setTimeout> | null>(null);
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const currentCase = DEMO_CASES[caseIndex % DEMO_CASES.length];
+
+  const handleTypeComplete = useCallback(() => {
+    setDemoOutput(currentCase.output);
+    setShowDemoOutput(true);
+    nextTimer.current = setTimeout(() => {
+      setShowDemoOutput(false);
+      setDemoOutput("");
+      setCaseIndex((prev) => prev + 1);
+      typeItKey.current += 1;
+    }, 2500);
+  }, [currentCase.output]);
+
+  // 切换到用户模式
+  function enterUserMode() {
+    if (mode === "auto") {
+      if (nextTimer.current) clearTimeout(nextTimer.current);
+      setMode("user");
+    }
+  }
+
+  // 失去焦点时恢复自动演示
+  function exitUserMode() {
+    setMode("auto");
+    setUserInput("");
+    setUserResult("");
+    setDurationMs(null);
+    setError("");
+    typeItKey.current += 1;
+  }
 
   function doInfer(pinyin: string) {
     if (!pinyin.trim()) {
-      setResult("");
+      setUserResult("");
       setDurationMs(null);
       setError("");
       return;
     }
-
     setLoading(true);
     setError("");
     const start = performance.now();
-
     fetch("/api/predict", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -540,66 +602,94 @@ function TryPanel() {
         const data = await res.json();
         if (!res.ok) throw new Error(data.error ?? "请求失败");
         const text =
-          typeof data.text === "string"
-            ? data.text
-            : typeof data.result === "string"
-              ? data.result
-              : Array.isArray(data.candidates) && data.candidates.length > 0
-                ? typeof data.candidates[0] === "string"
-                  ? data.candidates[0]
-                  : data.candidates[0]?.text ?? ""
-                : "";
-        setResult(text || "未识别到结果");
+          typeof data.text === "string" ? data.text
+          : typeof data.result === "string" ? data.result
+          : Array.isArray(data.candidates) && data.candidates.length > 0
+            ? (typeof data.candidates[0] === "string" ? data.candidates[0] : data.candidates[0]?.text ?? "")
+            : "";
+        setUserResult(text || "未识别到结果");
         setDurationMs(elapsed);
       })
       .catch((err) => {
         setError(err instanceof Error ? err.message : "请求失败");
-        setResult("");
+        setUserResult("");
         setDurationMs(null);
       })
       .finally(() => setLoading(false));
   }
 
-  function handleInput(value: string) {
-    setInput(value);
-    if (debounceRef[0]) clearTimeout(debounceRef[0]);
-    debounceRef[0] = setTimeout(() => doInfer(value), 300);
+  function handleUserInput(value: string) {
+    setUserInput(value);
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    debounceTimer.current = setTimeout(() => doInfer(value), 300);
   }
 
   return (
-    <div className="mt-10 grid gap-6 lg:grid-cols-2">
-      <div>
-        <label className="block text-[14px] text-white/60 mb-2">输入拼音</label>
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => handleInput(e.target.value)}
-          placeholder="试试输入拼音，如 nihaoshijie"
-          className="h-12 w-full border border-white/20 bg-white/[0.03] px-4 text-[16px] outline-none placeholder:text-white/30"
-        />
-      </div>
-
-      <div className="surface p-5" style={{ minHeight: 160 }}>
-        <div className="flex items-center justify-between border-b border-white/10 pb-3 mb-4">
-          <span className="font-mono text-[12px] uppercase tracking-[1px] text-white/50">
-            Output
-          </span>
-          {durationMs !== null && (
-            <span className="font-mono text-[12px] text-white/40">
-              {durationMs}ms
-            </span>
-          )}
+    <div className="mt-10 w-full max-w-[700px] mx-auto surface p-8">
+      {/* 输入区 */}
+      <div className="mb-4">
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-[13px] text-white/40">输入</p>
+          <p className="font-mono text-[11px] text-white/30">
+            {mode === "auto" ? "自动演示中 · 点击输入框体验" : ""}
+            {mode === "user" && durationMs !== null ? `${durationMs}ms` : ""}
+          </p>
         </div>
 
-        {loading ? (
-          <p className="text-[16px] text-white/40">推理中...</p>
-        ) : error ? (
-          <p className="text-[16px] text-red-400/80">{error}</p>
-        ) : result ? (
-          <p className="text-[20px] leading-[1.6] text-white whitespace-pre-wrap">{result}</p>
+        {mode === "auto" ? (
+          <div
+            className="border border-white/10 px-4 py-3 font-mono text-[18px] text-white/80 cursor-text"
+            style={{ minHeight: 52 }}
+            onClick={enterUserMode}
+          >
+            <TypeIt
+              key={typeItKey.current}
+              options={{
+                speed: 50,
+                afterComplete: handleTypeComplete,
+                cursor: true,
+                waitUntilVisible: true,
+              }}
+            >
+              {currentCase.input}
+            </TypeIt>
+          </div>
         ) : (
-          <p className="text-[16px] text-white/30">输入拼音后，模型输出会实时显示在这里</p>
+          <input
+            type="text"
+            autoFocus
+            value={userInput}
+            onChange={(e) => handleUserInput(e.target.value)}
+            onBlur={exitUserMode}
+            placeholder="输入拼音，如 nihaoshijie"
+            className="h-[52px] w-full border border-white/20 bg-white/[0.03] px-4 font-mono text-[18px] outline-none placeholder:text-white/30"
+          />
         )}
+      </div>
+
+      {/* 输出区 */}
+      <div>
+        <p className="text-[13px] text-white/40 mb-2">输出</p>
+        <div
+          className="border border-white/10 px-4 py-3 text-[22px] transition-opacity duration-500"
+          style={{ minHeight: 52 }}
+        >
+          {mode === "auto" ? (
+            showDemoOutput ? (
+              <span className="text-white">{demoOutput}</span>
+            ) : (
+              <span className="text-white/20">等待输入完成...</span>
+            )
+          ) : loading ? (
+            <span className="text-white/40">推理中...</span>
+          ) : error ? (
+            <span className="text-red-400/80">{error}</span>
+          ) : userResult ? (
+            <span className="text-white">{userResult}</span>
+          ) : (
+            <span className="text-white/20">输入拼音后显示结果</span>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -672,14 +762,26 @@ export default function Home() {
           style={{ "--enter-index": 0 } as CSSProperties}
         >
           <div className="mx-auto max-w-[1200px] px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-28">
-            <span className="mono-tag">AI-POWERED INPUT METHOD</span>
+            <span className="mono-tag">AI 端到端输入法</span>
             <h1 className="mt-8 font-mono text-[clamp(3.5rem,15vw,13rem)] leading-[0.9] font-light">
               超级输入法
             </h1>
             <p className="mt-8 max-w-[760px] text-[16px] leading-[1.5] text-white/70 sm:text-[18px]">
-              基于 240M Transformer 模型，整句理解替代逐字选词。
-              支持中英混输、智能标点、模糊音容错，让中文输入更接近思考速度。
+              输入不中断、思路不打断，中文、英文、数字、标点混合输入，想到什么输入什么，端到端直出结果。
             </p>
+
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-x-8 sm:gap-y-3">
+              <p className="flex items-center gap-2 text-[15px] text-white/80">
+                <span className="text-white/40">—</span> 不联网、不收集隐私、无广告
+              </p>
+              <p className="flex items-center gap-2 text-[15px] text-white/80">
+                <span className="text-white/40">—</span> 端到端技术，字符输入，中文直出，无中间编码
+              </p>
+              <p className="flex items-center gap-2 text-[15px] text-white/80">
+                <span className="text-white/40">—</span> 无需记住中英文状态，直接输入，会自动处理
+              </p>
+            </div>
+
             <div className="mt-10 flex flex-wrap gap-3">
               <a href="#download" className="mono-button mono-button-primary">
                 DOWNLOAD
@@ -699,9 +801,9 @@ export default function Home() {
           <div className="mx-auto max-w-[1200px] px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
             <h2 className="text-[30px] leading-[1.2] font-normal">在线体验</h2>
             <p className="mt-4 max-w-[760px] text-[16px] leading-[1.5] text-white/70">
-              输入拼音，实时感受 240M 模型的推理效果。输入越长，结果越准确。
+              点击输入框试试，或看自动演示感受效果。
             </p>
-            <TryPanel />
+            <LiveDemo />
           </div>
         </section>
 
@@ -739,9 +841,27 @@ export default function Home() {
           <div className="mx-auto max-w-[1200px] px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
             <h2 className="text-[30px] leading-[1.2] font-normal">动态输入对比</h2>
             <p className="mt-4 max-w-[760px] text-[16px] leading-[1.5] text-white/70">
-              恢复输入回放动画：左侧模拟传统逐段选词流程，右侧展示 SUPER IME
-              的长串连续输入。
+              同一句话，左侧传统输入法需要反复切换和选词，右侧超级输入法一次打完直接输出。
             </p>
+
+            <div className="mt-8 flex flex-wrap gap-6">
+              <div className="surface px-6 py-4 text-center">
+                <p className="font-mono text-[32px] font-light text-white">93</p>
+                <p className="mt-1 text-[13px] text-white/50">传统输入法按键数</p>
+              </div>
+              <div className="surface px-6 py-4 text-center">
+                <p className="font-mono text-[32px] font-light text-white">76</p>
+                <p className="mt-1 text-[13px] text-white/50">超级输入法按键数</p>
+              </div>
+              <div className="surface px-6 py-4 text-center">
+                <p className="font-mono text-[32px] font-light text-white">-18%</p>
+                <p className="mt-1 text-[13px] text-white/50">按键次数减少</p>
+              </div>
+              <div className="surface px-6 py-4 text-center">
+                <p className="font-mono text-[32px] font-light text-white">0</p>
+                <p className="mt-1 text-[13px] text-white/50">中途切换次数</p>
+              </div>
+            </div>
 
             <div className="mt-10 grid gap-4 lg:grid-cols-[minmax(0,1fr)_56px_minmax(0,1fr)] lg:items-stretch">
               <ReplayPanel title="系统输入法" tone="system" frames={SYSTEM_FRAMES} />
@@ -799,17 +919,54 @@ export default function Home() {
               <div>
                 <h2 className="text-[30px] leading-[1.2] font-normal">下载超级输入法</h2>
                 <p className="mt-4 max-w-[640px] text-[16px] leading-[1.5] text-white/70">
-                  基于 240M 参数 Transformer 模型，整句理解、中英混输、模糊音容错。
+                  AI 驱动的智能输入法。整句输入、中英混输、模糊容错，开箱即用。
                   目前支持 macOS，Windows 版即将推出。
                 </p>
                 <div className="mt-8 flex flex-wrap gap-3">
                   <a href="/SuperIME.pkg" className="mono-button mono-button-primary">
                     DOWNLOAD FOR MACOS
                   </a>
+                  <span className="mono-button mono-button-ghost" style={{ opacity: 0.5, cursor: "not-allowed" }}>
+                    WINDOWS — COMING SOON
+                  </span>
                 </div>
                 <p className="mt-4 text-[13px] text-white/40">
-                  支持 macOS 13+ (Apple Silicon &amp; Intel) &middot; 安装包约 604MB
+                  macOS 13+ (Apple Silicon &amp; Intel) &middot; 安装包约 604MB（模型文件占99%）
                 </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section
+          id="contact"
+          className="border-t border-white/10"
+        >
+          <div className="mx-auto max-w-[1200px] px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+            <h2 className="text-[30px] leading-[1.2] font-normal">联系我们</h2>
+            <p className="mt-4 max-w-[760px] text-[16px] leading-[1.5] text-white/70">
+              使用中遇到问题、有功能建议，或者想参与开发，欢迎联系。
+            </p>
+
+            <div className="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="surface p-6">
+                <p className="font-mono text-[12px] uppercase tracking-[1px] text-white/50">Email</p>
+                <a href="mailto:g03024735@gmail.com" className="mt-3 block text-[16px] text-white hover:text-white/70">
+                  g03024735@gmail.com
+                </a>
+              </div>
+
+              <div className="surface p-6">
+                <p className="font-mono text-[12px] uppercase tracking-[1px] text-white/50">用户交流群</p>
+                <div className="mt-3 flex h-[160px] items-center justify-center border border-white/10 bg-white/[0.03]">
+                  <img src="/qrcode.png" alt="扫码加群" className="h-[140px] w-[140px] object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).parentElement!.innerHTML = '<span class=\"font-mono text-[12px] text-white/30\">二维码待添加</span>'; }} />
+                </div>
+                <p className="mt-2 text-[13px] text-white/40">微信扫码加入交流群</p>
+              </div>
+
+              <div className="surface p-6">
+                <p className="font-mono text-[12px] uppercase tracking-[1px] text-white/50">GitHub</p>
+                <p className="mt-3 text-[16px] text-white/50">即将开源，敬请期待</p>
               </div>
             </div>
           </div>
@@ -819,7 +976,7 @@ export default function Home() {
       <footer className="border-t border-white/10">
         <div className="mx-auto flex max-w-[1200px] flex-col gap-2 px-4 py-6 text-[12px] text-white/50 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
           <p>© {new Date().getFullYear()} 超级输入法</p>
-          <p className="font-mono uppercase tracking-[1px]">Powered by Transformer 240M</p>
+          <a href="mailto:g03024735@gmail.com" className="font-mono tracking-[1px] hover:text-white/70">g03024735@gmail.com</a>
         </div>
       </footer>
     </div>
