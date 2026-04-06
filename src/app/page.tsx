@@ -594,7 +594,7 @@ function LiveDemo() {
     setLoading(true);
     setError("");
     const start = performance.now();
-    fetch("https://ranking-follow-river-ordered.trycloudflare.com/api/predict", {
+    fetch("https://lands-declared-robbie-phil.trycloudflare.com/api/predict", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ input: pinyin.trim() }),
