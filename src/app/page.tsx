@@ -594,7 +594,7 @@ function LiveDemo() {
     setLoading(true);
     setError("");
     const start = performance.now();
-    fetch("/api/predict", {
+    fetch("https://ranking-follow-river-ordered.trycloudflare.com/api/predict", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ input: pinyin.trim() }),
@@ -774,13 +774,13 @@ export default function Home() {
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-x-8 sm:gap-y-3">
               <p className="flex items-center gap-2 text-[15px] text-white/80">
-                <span className="text-white/40">—</span> 不联网、不收集隐私、无广告
+                <span className="text-white/40">—</span> 不联网、不收集隐私、无广告、无花里胡哨功能
               </p>
               <p className="flex items-center gap-2 text-[15px] text-white/80">
                 <span className="text-white/40">—</span> 端到端技术，字符输入，中文直出，无中间编码
               </p>
               <p className="flex items-center gap-2 text-[15px] text-white/80">
-                <span className="text-white/40">—</span> 无需记住中英文状态，直接输入，会自动处理
+                <span className="text-white/40">—</span> 无需记住中英文状态，输你想输
               </p>
             </div>
 
