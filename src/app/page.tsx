@@ -312,7 +312,7 @@ const ENGINE_LINES = [
   {
     label: "推理引擎",
     value: "神经网络整句理解",
-    detail: "基于深度学习模型对完整拼音序列进行语义分析，替代传统的词频匹配方案。",
+    detail: "基于transformer算法训练，自注意力机制完整拼音序列进行语义分析，替代传统的词频匹配方案。",
   },
   {
     label: "解码策略",
@@ -549,9 +549,12 @@ function LiveDemo() {
   const [userInput, setUserInput] = useState("");
   const [userResult, setUserResult] = useState("");
   const [loading, setLoading] = useState(false);
-  const [durationMs, setDurationMs] = useState<number | null>(null);
+  const [durationMs, setDurationMs] = useState<number | null>(null);  // 前端总耗时
+  const [inferMs, setInferMs] = useState<number | null>(null);       // 服务端推理耗时
   const [error, setError] = useState("");
-  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastCallTime = useRef(0);
+  const pendingInput = useRef<string | null>(null);
+  const throttleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const currentCase = DEMO_CASES[caseIndex % DEMO_CASES.length];
 
@@ -588,11 +591,13 @@ function LiveDemo() {
     if (!pinyin.trim()) {
       setUserResult("");
       setDurationMs(null);
+      setInferMs(null);
       setError("");
       return;
     }
     setLoading(true);
     setError("");
+    lastCallTime.current = Date.now();
     const start = performance.now();
     fetch("https://lands-declared-robbie-phil.trycloudflare.com/api/predict", {
       method: "POST",
@@ -611,19 +616,34 @@ function LiveDemo() {
             : "";
         setUserResult(text || "未识别到结果");
         setDurationMs(elapsed);
+        setInferMs(typeof data.duration_ms === "number" ? data.duration_ms : null);
       })
       .catch((err) => {
         setError(err instanceof Error ? err.message : "请求失败");
         setUserResult("");
         setDurationMs(null);
+        setInferMs(null);
       })
       .finally(() => setLoading(false));
   }
 
+  // 节流：每500ms最多触发一次请求
   function handleUserInput(value: string) {
     setUserInput(value);
-    if (debounceTimer.current) clearTimeout(debounceTimer.current);
-    debounceTimer.current = setTimeout(() => doInfer(value), 300);
+    const now = Date.now();
+    const elapsed = now - lastCallTime.current;
+    if (throttleTimer.current) clearTimeout(throttleTimer.current);
+    if (elapsed >= 500) {
+      doInfer(value);
+    } else {
+      pendingInput.current = value;
+      throttleTimer.current = setTimeout(() => {
+        if (pendingInput.current !== null) {
+          doInfer(pendingInput.current);
+          pendingInput.current = null;
+        }
+      }, 500 - elapsed);
+    }
   }
 
   return (
@@ -634,7 +654,11 @@ function LiveDemo() {
           <p className="text-[13px] text-white/40">输入</p>
           <p className="font-mono text-[11px] text-white/30">
             {mode === "auto" ? "自动演示中 · 点击输入框体验" : ""}
-            {mode === "user" && durationMs !== null ? `${durationMs}ms` : ""}
+            {mode === "user" && durationMs !== null ? (
+              <>
+                推理 {inferMs ?? "?"}ms · 网络 {durationMs - (inferMs ?? 0)}ms · 总计 {durationMs}ms
+              </>
+            ) : ""}
           </p>
         </div>
 
