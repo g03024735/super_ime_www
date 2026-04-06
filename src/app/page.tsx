@@ -977,7 +977,7 @@ export default function Home() {
                 <p className="font-mono text-[12px] uppercase tracking-[1px] text-white/50">中英切换</p>
                 <h3 className="mt-3 text-[18px] font-normal">分号模式</h3>
                 <p className="mt-2 text-[14px] leading-[1.6] text-white/60">
-                  按「;」进入英文模式，直接上屏英文。再按「;」切回中文模式。无需记住当前状态
+                  按「;」进入英文模式，直接上屏英文。回车确认输入后，自动切回中文模
                 </p>
               </article>
 
