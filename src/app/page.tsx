@@ -26,6 +26,7 @@ const NAV_LINKS = [
   { href: "#features", label: "能力" },
   { href: "#compare", label: "对比" },
   { href: "#engine", label: "机制" },
+  { href: "#guide", label: "使用" },
   { href: "#download", label: "下载" },
   { href: "#contact", label: "联系" },
 ];
@@ -905,6 +906,69 @@ export default function Home() {
                   </article>
                 ))}
               </div>
+            </div>
+          </div>
+        </section>
+
+        <section
+          id="guide"
+          className="section-enter border-b border-white/10"
+          style={{ "--enter-index": 5 } as CSSProperties}
+        >
+          <div className="mx-auto max-w-[1200px] px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+            <h2 className="text-[30px] leading-[1.2] font-normal">使用说明</h2>
+            <p className="mt-4 max-w-[760px] text-[16px] leading-[1.5] text-white/70">
+              安装完成后，按以下步骤启用和使用超级输入法。
+            </p>
+
+            <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <article className="surface p-6">
+                <p className="font-mono text-[12px] uppercase tracking-[1px] text-white/50">Step 1</p>
+                <h3 className="mt-3 text-[18px] font-normal">启用输入法</h3>
+                <p className="mt-2 text-[14px] leading-[1.6] text-white/60">
+                  系统设置 → 键盘 → 输入源 → 点击「+」→ 中文分类下找到「超级输入法」→ 添加
+                </p>
+              </article>
+
+              <article className="surface p-6">
+                <p className="font-mono text-[12px] uppercase tracking-[1px] text-white/50">Step 2</p>
+                <h3 className="mt-3 text-[18px] font-normal">切换输入法</h3>
+                <p className="mt-2 text-[14px] leading-[1.6] text-white/60">
+                  菜单栏点击输入法图标切换，或使用快捷键 Ctrl + Space 在输入法之间切换
+                </p>
+              </article>
+
+              <article className="surface p-6">
+                <p className="font-mono text-[12px] uppercase tracking-[1px] text-white/50">Step 3</p>
+                <h3 className="mt-3 text-[18px] font-normal">直接输入</h3>
+                <p className="mt-2 text-[14px] leading-[1.6] text-white/60">
+                  直接打拼音，中英文数字标点混合输入均可。打完按 Enter 上屏，按 Tab 展开更多候选
+                </p>
+              </article>
+
+              <article className="surface p-6">
+                <p className="font-mono text-[12px] uppercase tracking-[1px] text-white/50">中英切换</p>
+                <h3 className="mt-3 text-[18px] font-normal">分号模式</h3>
+                <p className="mt-2 text-[14px] leading-[1.6] text-white/60">
+                  按「;」进入英文模式，直接上屏英文。再按「;」切回中文模式。无需记住当前状态
+                </p>
+              </article>
+
+              <article className="surface p-6">
+                <p className="font-mono text-[12px] uppercase tracking-[1px] text-white/50">候选操作</p>
+                <h3 className="mt-3 text-[18px] font-normal">展开与翻页</h3>
+                <p className="mt-2 text-[14px] leading-[1.6] text-white/60">
+                  Tab 展开候选列表，数字键 1-9 选择对应候选。← → 翻页查看更多候选结果
+                </p>
+              </article>
+
+              <article className="surface p-6">
+                <p className="font-mono text-[12px] uppercase tracking-[1px] text-white/50">快捷键</p>
+                <h3 className="mt-3 text-[18px] font-normal">常用操作</h3>
+                <p className="mt-2 text-[14px] leading-[1.6] text-white/60">
+                  Enter 上屏 · Shift+Enter 上屏英文原文 · ESC 取消输入 · Cmd+Backspace 清空
+                </p>
+              </article>
             </div>
           </div>
         </section>
