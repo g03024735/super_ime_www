@@ -829,6 +829,9 @@ export default function Home() {
             <p className="mt-4 max-w-[760px] text-[16px] leading-[1.5] text-white/70">
               点击输入框试试，或看自动演示感受效果。
             </p>
+            <p className="mt-2 text-[13px] text-white/40">
+              在线体验通过网络调用远程服务器，存在网络延迟。实际使用中模型运行在本地，推理响应在毫秒级，无任何网络延迟。
+            </p>
             <LiveDemo />
           </div>
         </section>
